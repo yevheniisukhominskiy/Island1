@@ -1,0 +1,4 @@
+saturation: 200
+
+eatingProbabilities:
+  "com.eugened.entity.object.organism.plant.creatures.Grass": 1
