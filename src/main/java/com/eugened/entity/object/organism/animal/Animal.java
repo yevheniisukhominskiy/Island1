@@ -5,21 +5,33 @@ import com.eugened.entity.object.ability.Edible;
 import com.eugened.entity.object.ability.Movable;
 import com.eugened.entity.object.ability.Reproducible;
 import com.eugened.entity.object.organism.Organism;
+import com.eugened.entity.object.organism.plant.Plant;
+import com.eugened.utils.ClassKeyMapDeserializer;
 import com.eugened.utils.GameContext;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import java.util.*;
 
 public abstract class Animal extends Organism implements Edible, Movable, Reproducible {
+    private static int animalsEaten = 0;
+    private static int plantsEaten = 0;
+    private static int reproductions = 0;
+
     private int speed;
+    @JsonDeserialize(using = ClassKeyMapDeserializer.class)
     private Map<Class<? extends Organism>, Double> eatingProbabilities = new HashMap<>();
     private boolean hasReproduced = false;
 
-    public boolean hasReproduced() {
-        return hasReproduced;
+    public static int getAnimalsEaten() {
+        return animalsEaten;
     }
 
-    public void setHasReproduced(boolean hasReproduced) {
-        this.hasReproduced = hasReproduced;
+    public static int getPlantsEaten() {
+        return plantsEaten;
+    }
+
+    public static int getReproductions() {
+        return reproductions;
     }
 
     public int getSpeed() {
@@ -28,6 +40,22 @@ public abstract class Animal extends Organism implements Edible, Movable, Reprod
 
     public void setSpeed(int speed) {
         this.speed = speed;
+    }
+
+    public Map<Class<? extends Organism>, Double> getEatingProbabilities() {
+        return eatingProbabilities;
+    }
+
+    public void setEatingProbabilities(Map<Class<? extends Organism>, Double> eatingProbabilities) {
+        this.eatingProbabilities = eatingProbabilities;
+    }
+
+    public boolean hasReproduced() {
+        return hasReproduced;
+    }
+
+    public void setHasReproduced(boolean hasReproduced) {
+        this.hasReproduced = hasReproduced;
     }
 
     @Override
@@ -60,11 +88,18 @@ public abstract class Animal extends Organism implements Edible, Movable, Reprod
         List<Organism> organisms = currentCell.getOrganisms();
         for (Organism organism : organisms) {
             if (organism != this && eatingProbabilities.containsKey(organism.getClass())) {
-                double probability = getEatingProbability(organism.getClass());
+                double probability = eatingProbabilities.getOrDefault(organism.getClass(), 0.0);
 
-                if (new Random().nextDouble(100) < probability) {
+                if (probability > 0 && new Random().nextDouble() < probability) {
                     currentCell.removeOrganism(organism);
                     organism.setAlive(false);
+
+                    if (organism instanceof Animal) {
+                        animalsEaten++;
+                    } else if (organism instanceof Plant) {
+                        plantsEaten++;
+                    }
+
                     return;
                 }
             }
@@ -115,6 +150,8 @@ public abstract class Animal extends Organism implements Edible, Movable, Reprod
         }
     }
 
+
+
     @Override
     public void reproduce() {
         if (this.hasReproduced()) {
@@ -127,13 +164,14 @@ public abstract class Animal extends Organism implements Edible, Movable, Reprod
             return;
         }
 
+        List<Organism> organismsCopy = new ArrayList<>(currentCell.getOrganisms());
+
         long sameOrganismCounter = currentCell.getOrganisms().stream()
                 .filter(organism -> organism.getClass().equals(this.getClass()) && !((Animal) organism).hasReproduced)
                 .count();
 
         boolean willReproduce = new Random().nextBoolean();
-        // TODO: вместо 10, должно загрузить макс. плотность if (sameOrganismCounter > 1 && sameOrganismCounter < getSaturation())
-        if (sameOrganismCounter > 1 && sameOrganismCounter < 10 && willReproduce) {
+        if (sameOrganismCounter > 1 && sameOrganismCounter < getSaturation() && willReproduce) {
             try {
                 Animal baby = this.getClass().getDeclaredConstructor().newInstance();
                 baby.setCoordinates(this.getX(), this.getY());
@@ -141,13 +179,16 @@ public abstract class Animal extends Organism implements Edible, Movable, Reprod
 
                 baby.setHasReproduced(true);
                 this.setHasReproduced(true);
-                currentCell.getOrganisms().stream()
+                organismsCopy.stream()
                         .filter(organism -> organism.getClass().equals(this.getClass()) && !((Animal) organism).hasReproduced())
                         .findFirst()
                         .ifPresent(organism -> ((Animal) organism).setHasReproduced(true));
+                reproductions++;
             } catch (Exception e) {
                 System.err.println(e + ": couldn't reproduce organism");
             }
         }
+
+
     }
 }
