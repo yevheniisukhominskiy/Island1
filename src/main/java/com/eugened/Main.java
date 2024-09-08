@@ -1,54 +1,42 @@
 package com.eugened;
 
+import com.eugened.config.AppConfigurator;
+import com.eugened.constant.GameConfiguration;
 import com.eugened.entity.location.Cell;
 import com.eugened.entity.location.GameField;
 import com.eugened.entity.object.organism.Organism;
 import com.eugened.entity.object.organism.animal.Animal;
 import com.eugened.entity.object.organism.animal.herbivore.creatures.Horse;
 import com.eugened.entity.object.organism.animal.predator.creatures.Wolf;
+import com.eugened.entity.object.organism.plant.Plant;
+import com.eugened.entity.object.organism.plant.creatures.Grass;
+import com.eugened.factory.OrganismPrototypeFactory;
 import com.eugened.utils.GameContext;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Main {
     public static void main(String[] args) {
-        GameField field = new GameField(10, 10);
-        GameContext.setGameField(field);
-        Cell cell = field.getCellAt(2, 2);
+        AppConfigurator.getInstance().init();
+    }
 
-        Organism wolf1 = new Wolf();
-        Organism wolf2 = new Wolf();
-        Organism horse = new Horse();
+    private static void printAllAnimalsInCells(GameField gameField) {
+        Cell[][] cells = gameField.getCells();
 
-        wolf1.setCoordinates(2, 2);
-        wolf2.setCoordinates(2, 2);
-        horse.setCoordinates(2, 2);
+        for (int x = 0; x < cells.length; x++) {
+            for (int y = 0; y < cells[x].length; y++) {
+                Cell cell = cells[x][y];
+                System.out.println("Cell (" + x + ", " + y + "):");
 
-        cell.addOrganism(wolf1);
-        cell.addOrganism(wolf2);
-        cell.addOrganism(horse);
-
-        Cell current = wolf1.getCurrentCell(field);
-
-        List<Organism> organisms = new ArrayList<>(current.getOrganisms());
-        System.out.println("Organisms in cell: " + organisms);
-        //resetReproductionFlags(organisms);
-
-        for (Organism organism : organisms) {
-            organism.play();
-        }
-
-        List<Organism> global = current.getOrganisms();
-        System.out.println("Organisms in cell: " + global);
-
-        // Получаем координаты всех животных
-        List<String> animalCoordinates = getAnimalCoordinates(field);
-
-        // Выводим координаты
-        System.out.println("Animal coordinates:");
-        for (String coordinate : animalCoordinates) {
-            System.out.println(coordinate);
+                for (Organism organism : cell.getOrganisms()) {
+                    if (organism instanceof Animal) {
+                        Animal animal = (Animal) organism;
+                        System.out.println("  " + animal);
+                    }
+                }
+            }
         }
     }
 
@@ -60,7 +48,6 @@ public class Main {
         }
     }
 
-    // Метод для получения координат всех животных
     public static List<String> getAnimalCoordinates(GameField field) {
         List<String> coordinates = new ArrayList<>();
 
@@ -68,7 +55,7 @@ public class Main {
             for (int y = 0; y < field.getHeight(); y++) {
                 Cell cell = field.getCellAt(x, y);
                 for (Organism organism : cell.getOrganisms()) {
-                    if (organism instanceof Animal) { // Проверяем, что организм является животным
+                    if (organism instanceof Animal) {
                         coordinates.add("(" + organism.getX() + ", " + organism.getY() + ")");
                     }
                 }
