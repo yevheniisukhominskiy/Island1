@@ -20,24 +20,6 @@ public class AnimalLifecycleTask implements Runnable {
         for (Animal animal : animals) {
             animalExecutor.submit(animal::play);
         }
-
-        //printAllAnimalsInCells(GameContext.getGameField());
-    }
-
-    private static void printAllAnimalsInCells(GameField gameField) {
-        Cell[][] cells = gameField.getCells();
-
-        for (int x = 0; x < cells.length; x++) {
-            for (int y = 0; y < cells[x].length; y++) {
-                Cell cell = cells[x][y];
-                System.out.println("Cell (" + x + ", " + y + "):");
-
-                for (Organism organism : cell.getOrganisms()) {
-                    Organism organisms = organism;
-                    System.out.println("  " + organisms);
-                }
-            }
-        }
     }
 
     public static void shutdown() {
