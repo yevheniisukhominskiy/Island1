@@ -1,6 +1,0 @@
-saturation: 20
-speed: 3
-eatingProbabilities:
-  "com.eugened.entity.object.organism.animal.herbivore.creatures.Rabbit": 0.9
-  "com.eugened.entity.object.organism.animal.herbivore.creatures.Mouse": 0.9
-  "com.eugened.entity.object.organism.animal.herbivore.creatures.Duck": 0.8
