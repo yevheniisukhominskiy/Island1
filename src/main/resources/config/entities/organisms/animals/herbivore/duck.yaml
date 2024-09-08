@@ -1,0 +1,5 @@
+saturation: 200
+speed: 4
+eatingProbabilities:
+  "com.eugened.entity.object.organism.animal.herbivore.creatures.Caterpillar": 0.9
+  "com.eugened.entity.object.organism.plant.creatures.Grass": 1
